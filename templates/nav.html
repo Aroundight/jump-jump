@@ -1,0 +1,79 @@
+{% if request.session.role_id == 2 %}
+<nav class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <ul class="nav" id="side-menu">
+            {% include 'nav_li_profile.html' %}
+            <li id="index">
+               <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> <span class="nav-label">仪表盘</span><span class="label label-info pull-right"></span></a>
+            </li>
+            <li id="jasset">
+                <a><i class="fa fa-inbox"></i> <span class="nav-label">服务器</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+                    <li class="group"><a href="{% url 'asset_group_list' %}">服务器组<span class="label label-info pull-right">{{ asset_group_total_num }}</span></a></li>
+                    <li class="asset"> <a href="{% url 'asset_list' %}">查看服务器<span class="label label-info pull-right">{{ host_active_num }}</span></a></li>
+                   
+                </ul>
+            </li>
+            <li id="jperm">
+                <ul class="nav nav-second-level">
+                    <li class="role">
+                        <a href="{% url 'role_list' %}">系统用户</a>
+                    </li>
+                </ul>
+            </li>
+            <li id="jlog">
+               <a href="{% url 'log_list' 'online' %}"><i class="fa fa-files-o"></i> <span class="nav-label">日志审计</span><span class="label label-info pull-right"></span></a>
+            </li>
+        </ul>
+
+    </div>
+</nav>
+{% endif %}
+
+{% if request.session.role_id == 0 %}
+<nav class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <ul class="nav" id="side-menu">
+            {% include 'nav_li_profile.html' %}
+            <li id="index">
+               <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> <span class="nav-label">仪表盘</span><span class="label label-info pull-right"></span></a>
+            </li>
+            <li id="jasset">
+                <a><i class="fa fa-inbox"></i> <span class="nav-label">服务器</span><span class="fa arrow"></span></a>
+                <ul class="nav nav-second-level">
+                    <li class="group"><a href="{% url 'asset_group_list' %}">服务器组<span class="label label-info pull-right">{{ asset_group_total_num }}</span></a></li>
+                    <li class="asset"> <a href="{% url 'asset_list' %}">查看服务器<span class="label label-info pull-right">{{ host_active_num }}</span></a></li>
+                   
+                </ul>
+            </li>
+            <li id="jperm">
+                <ul class="nav nav-second-level">
+                    <li class="role">
+                        <a href="{% url 'role_list' %}">系统用户</a>
+                    </li>
+                </ul>
+            </li>
+            <li id="jlog">
+               <a href="{% url 'log_list' 'online' %}"><i class="fa fa-files-o"></i> <span class="nav-label">日志审计</span><span class="label label-info pull-right"></span></a>
+            </li>
+        </ul>
+
+    </div>
+</nav>
+{% endif %}
+
+{% if request.session.role_id == 1 %}
+<nav class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <ul class="nav" id="side-menu">
+            {% include 'nav_li_profile.html' %}
+            <li id="juser">
+               <a href="{% url 'user_detail' %}"><i class="fa fa-dashboard"></i> <span class="nav-label">仪表盘</span><span class="label label-info pull-right"></span></a>
+            </li>
+            <li id="jasset">
+               <a href="{% url 'asset_list' %}"><i class="fa fa-inbox"></i> <span class="nav-label">查看主机</span><span class="label label-info pull-right"></span></a>
+            </li>
+        </ul>
+    </div>
+</nav>
+{% endif %}
