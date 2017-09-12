@@ -38,8 +38,9 @@ from jlog.models import ExecLog, FileLog
 from jlog.views import TermLogRecorder
 
 login_user = User(username=getpass.getuser())
-#login_user = User(username="zhangliang01")
+#login_user = User(username="chensu")
 
+RECORD_PATH = os.path.join("/home",login_user.username,"output-%s.log"%(os.getpid()))
 
 try:
     remote_ip = os.environ.get('SSH_CLIENT').split()[0]
@@ -56,6 +57,8 @@ except ImportError:
 
 q = Queue(4096)
 
+
+ALLOW_CMD = set(["cat","ls","cd","exit","grep","awk","top","ps","ip","netstat","ss","ifconfig","nslookup","more","less","ping","vim","which","telnet","tail"])
 
 def color_print(msg, color='red', exits=False):
     """
@@ -318,7 +321,10 @@ class SshTty(Tty):
                 tty.setraw(sys.stdin.fileno())
                 tty.setcbreak(sys.stdin.fileno())
                 self.channel.settimeout(0.0)
+                
+                cache_line = ""
         
+                RECORD_CMD_FLAG = True
                 while True:
                     try:
                         r, w, e = select.select([self.channel, sys.stdin], [], [])
@@ -329,38 +335,43 @@ class SshTty(Tty):
         
                     if self.channel in r:
                         try:
-                            x = self.channel.recv(10240)
-                            if len(x) == 0:
+                            y = self.channel.recv(10240)
+                            if len(y) == 0:
                                 break
         
                             index = 0
-                            len_x = len(x)
-                            while index < len_x:
+                            len_y = len(y)
+                            f = open(RECORD_PATH,"a+")
+                            while index < len_y:
                                 try:
-                                    n = os.write(sys.stdout.fileno(), x[index:])
+                                    n = os.write(sys.stdout.fileno(), y[index:])
+                                    if self.role == "rd" and RECORD_CMD_FLAG:
+                                        f.write(y[index:])
                                     sys.stdout.flush()
                                     index += n
                                 except OSError as msg:
                                     if msg.errno == errno.EAGAIN:
                                         continue
+                            f.close()
                             now_timestamp = time.time()
-                            termlog.write(x)
+                            termlog.write(y)
                             termlog.recoder = False
-                            log_time_f.write('%s %s\n' % (round(now_timestamp-pre_timestamp, 4), len(x)))
+                            log_time_f.write('%s %s\n' % (round(now_timestamp-pre_timestamp, 4), len(y)))
                             log_time_f.flush()
-                            log_file_f.write(x)
+                            log_file_f.write(y)
                             log_file_f.flush()
                             pre_timestamp = now_timestamp
                             log_file_f.flush()
         
-                            self.vim_data += x
+                            self.vim_data += y
                             if input_mode:
-                                data += x
+                                data += y
         
                         except socket.timeout:
                             pass
         
                     if sys.stdin in r:
+                        RECORD_CMD_FLAG = True
                         try:
                             x = os.read(sys.stdin.fileno(), 4096)
                             q.put(x)
@@ -389,7 +400,32 @@ class SshTty(Tty):
         
                         if len(x) == 0:
                             break
+
+                        if x in ['\x03','\r\n','\n','\x0D']:
+                            f = open(RECORD_PATH,"r")
+                            lines = f.readlines()
+                            cmd = ""
+                            if lines:
+                                cmd = lines[-1]
+                            f.close()
+                            f = open(RECORD_PATH,"w")
+                            f.close()
+                            cmds_str = re.compile('\[?.*@.*\]?[\$#]\s').split(cmd)
+                            logger.info("get command from log file is: %s",cmds_str)
+                            if len(cmds_str)==2:
+                                cmds = cmds_str[1]
+                                logger.info("command >>>: %s",cmds.split("|"))
+                                cmd = set([i.split()[0].strip() for i in cmds.split("|") if i.split()])
+                                logger.info("command set>>>: %s",cmd)
+                                if self.role == "rd" and not ALLOW_CMD.issuperset(cmd):
+                                    x = '\x03'
+                                if "tail" in cmd or "cat" in cmd:
+                                    RECORD_CMD_FLAG = False
+                            else:
+                                RECORD_CMD_FLAG = True
+                            cache_line = ""
                         self.channel.send(x)
+
                         if self.kill_shell:
                             break
         
@@ -403,6 +439,8 @@ class SshTty(Tty):
                 log.is_finished = True
                 log.end_time = datetime.datetime.now()
                 log.save()
+                if os.path.isfile(RECORD_PATH):
+                    os.remove(RECORD_PATH)
                 sys.exit(0)
         
         thread_shell = Thread(target=start_shell,args=())
@@ -416,6 +454,8 @@ class SshTty(Tty):
                 if timer > 21600:
                     self.kill_shell = True
                     time.sleep(2)
+                    if os.path.isfile(RECORD_PATH):
+                        os.remove(RECORD_PATH)
                     sys.exit(0)
                     break;
                 if not thread_shell.isAlive():
@@ -445,7 +485,7 @@ class SshTty(Tty):
         try:
             signal.signal(signal.SIGWINCH, self.set_win_size)
         except:
-            pass
+            logger.exception("found exception")
 
         self.posix_shell()
 
@@ -464,6 +504,7 @@ class Nav(object):
         self.perm_assets = sorted(self.user_perm.get('asset', []))
         self.search_result = self.perm_assets
         self.perm_asset_groups = self.user_perm.get('asset_group', [])
+        logger.info("get group is: %s",self.perm_asset_groups)
 
     def natural_sort_hostname(self, list):
         convert = lambda text: int(text) if text.isdigit() else text.lower()
@@ -498,7 +539,7 @@ class Nav(object):
                 self.search_result = []
                 return
             asset_group = [x for x in self.user_perm["asset_group"] if x.id == gid][0]
-            self.search_result = asset_group.asset_set 
+            self.search_result = sorted(asset_group.asset_set)
 
     def search(self, str_r=''):
         # 搜索结果保存
@@ -513,12 +554,13 @@ class Nav(object):
                         raise ValueError
     
                 except (ValueError, TypeError):
-                    pass
+                    logger.exception("type error")
             str_r = str_r.lstrip("/").lower()
             self.search_result = [asset for asset in self.perm_assets if str_r == str(asset.ip).lower()] or \
                                  [asset for asset in self.perm_assets if str_r in str(asset.ip).lower() \
                                   or str_r in str(asset.hostname).lower() \
                                   or str_r in str(asset.comment).lower()]
+            logger.info("get asset: %s",self.search_result)
         else:
             # 如果没有输入就展现所有
             self.search_result = self.perm_assets
@@ -720,7 +762,7 @@ class Nav(object):
                     print
 
             except IndexError:
-                pass
+                logger.exception("index err")
 
     def download(self):
         while True:

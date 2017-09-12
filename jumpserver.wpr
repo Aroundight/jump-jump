@@ -1,11 +1,11 @@
 #!wing
-#!version=6.0
+#!version=5.0
 ##################################################################
 # Wing IDE project file                                          #
 ##################################################################
 [project attributes]
-debug.launch-configs = (2,
-                        {'launch-3zZVnYy36ldRepaU': ({},
+debug.launch-configs = (1,
+                        {'launch-XQeYr0BtSDDHV49C': ({},
         {'buildcmd': ('project',
                       ('',
                        '')),
@@ -31,6 +31,6 @@ proj.directory-list = [{'dirloc': loc('.'),
 proj.file-type = 'shared'
 proj.launch-config = {loc('manage.py'): ('custom',
         ('',
-         'launch-3zZVnYy36ldRepaU'))}
+         'launch-XQeYr0BtSDDHV49C'))}
 proj.main-file = loc('manage.py')
 testing.test-framework = {loc('manage.py'): ':internal djangotest'}

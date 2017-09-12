@@ -171,7 +171,10 @@ def Login(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 if user.is_active:
-                    login(request, user)
+                    try:
+                        login(request, user)
+                    except Exception as e:
+                        return render_to_response('login.html', {'error': "密码错误"})
                     if user.web_role == 'SU':
                         request.session['role_id'] = 2
                     elif user.role == 'GA':
@@ -247,7 +250,7 @@ def setting(request):
     return my_render('setting.html', locals(), request)
 
 
-@login_required(login_url='/login')
+@login_required(login_url='login')
 def upload(request):
     user = request.user
     assets = get_group_user_perm(user).get('asset').keys()
@@ -291,7 +294,7 @@ def upload(request):
     return my_render('upload.html', locals(), request)
 
 
-@login_required(login_url='/login')
+@login_required(login_url='login')
 def download(request):
     user = request.user
     assets = get_group_user_perm(user).get('asset').keys()
@@ -333,7 +336,7 @@ def download(request):
     return render_to_response('download.html', locals(), context_instance=RequestContext(request))
 
 
-@login_required(login_url='/login')
+@login_required(login_url='login')
 def exec_cmd(request):
     role = request.GET.get('role')
     check_assets = request.GET.get('check_assets', '')

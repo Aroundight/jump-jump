@@ -9,6 +9,7 @@ from jumpserver.models import Setting
 #from jperm.models import PermRole, PermPush, PermRule
 from ops_auth.HttpClient import HttpClient
 from django.conf import settings
+from jumpserver.api import logger
 
 class PermRole(object):
     pass
@@ -147,7 +148,9 @@ class Rule(object):
         ret_t = []
         hc = HttpClient(ret_type="json")
         url = "%s?key=%s&user=%s"%(settings.OPS_HOST_IN_GROUP_URL, settings.OPS_KEY, self._user)
+        logger.info("query url: %s",url)
         ret = hc.get(url)
+        logger.info("query data is: %s",ret["data"])
         asset_groups = {}
         if ret and ret["statusCode"] == 200:
             _data = ret["data"]

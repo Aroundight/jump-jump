@@ -20,7 +20,7 @@ KEY_DIR = os.path.join(BASE_DIR, 'keys')
 MAIL_ENABLE = True
 EMAIL_HOST = "smtp.qiye.163.com"
 EMAIL_PORT = 465
-EMAIL_HOST_USER = "test@oxx.so"
+EMAIL_HOST_USER = "test@ofo.so"
 EMAIL_HOST_PASSWORD = "test"
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = False
@@ -96,10 +96,10 @@ WSGI_APPLICATION = 'jumpserver.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': "jump",
-        'USER': "jump",
-        'PASSWORD': "jump",
-        'HOST': "192.168.1.1",
+        'NAME': "jumpserver",
+        'USER': "jumpserver",
+        'PASSWORD': "jumpserver",
+        'HOST': "192.168.1.192",
         'PORT': "3306",
     }
 }
@@ -127,7 +127,7 @@ STATICFILES_DIRS = (
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
-LANGUAGE_CODE = 'zh_CN'
+#LANGUAGE_CODE = 'zh_CN'
 
 TIME_ZONE = 'Asia/Shanghai'
 
@@ -169,7 +169,7 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler'
         },
         'console': {  
-            'level': 'DEBUG',  
+            'level': 'ERROR',  
             'class':'logging.StreamHandler' 
         }
     },
@@ -193,7 +193,7 @@ LOGGING = {
 }
 
 OPS_KEY = "IfdED2Y3"
-OPS_USER_INFO_URL = "http://192.168.1.1:2053/jump/api/getUserInfo/"
-OPS_USER_AUTH_URL = "http://192.168.1.1:2053/jump/api/jumpUserAuth/"
-OPS_USER_GROUP_URL = "http://192.168.1.1:2053/jump/api/getUserItem/"
-OPS_HOST_IN_GROUP_URL = "http://192.168.1.1:2053/jump/api/getUserPermissions/"
+OPS_USER_INFO_URL = "http://10.6.30.179:2053/jump/api/getUserInfo/"
+OPS_USER_AUTH_URL = "http://10.6.30.179:2053/jump/api/jumpUserAuth/"
+OPS_USER_GROUP_URL = "http://10.6.30.179:2053/jump/api/getUserItem/"
+OPS_HOST_IN_GROUP_URL = "http://10.6.30.179:2053/jump/api/getUserPermissions/"

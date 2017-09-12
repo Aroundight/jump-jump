@@ -270,7 +270,7 @@ def require_role(role='user'):
         def __deco(request, *args, **kwargs):
             request.session['pre_url'] = request.path
             if not request.user.is_authenticated():
-                return HttpResponseRedirect("/login")
+                return HttpResponseRedirect("login")
             if role == 'admin':
                 # if request.session.get('role_id', 0) < 1:
                 if request.user.web_role == 'CU':
